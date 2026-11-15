@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import httpx
 
-
 BASE_URL = "https://api.openf1.org/v1"
 
 

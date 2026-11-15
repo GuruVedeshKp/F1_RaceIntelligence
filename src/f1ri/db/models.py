@@ -1,4 +1,5 @@
-from datetime import date as DateValue, datetime as DateTimeValue
+from datetime import date as DateValue
+from datetime import datetime as DateTimeValue
 
 from sqlalchemy import (
     Boolean,
@@ -19,7 +20,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from f1ri.db.base import Base
-
 
 
 class Race(Base):
@@ -265,6 +265,7 @@ class LapState(Base):
     laps_remaining: Mapped[int | None] = mapped_column(Integer)
     position: Mapped[int | None] = mapped_column(SmallInteger)
     gap_to_leader_s: Mapped[float | None] = mapped_column(Float)
+    laps_behind_leader: Mapped[int | None] = mapped_column(SmallInteger)
     gap_to_ahead_s: Mapped[float | None] = mapped_column(Float)
     gap_to_behind_s: Mapped[float | None] = mapped_column(Float)
 
@@ -285,7 +286,7 @@ class LapState(Base):
     rain: Mapped[bool | None] = mapped_column(Boolean)
 
     circuit: Mapped[str | None] = mapped_column(String(120))
-    era: Mapped[str | None] = mapped_column(String(20))
+    era: Mapped[str | None] = mapped_column(String(120))
 
     # Prediction targets
     finish_position: Mapped[int | None] = mapped_column(SmallInteger)

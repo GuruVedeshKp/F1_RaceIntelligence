@@ -2,10 +2,10 @@ from logging.config import fileConfig
 
 from alembic import context
 
+# Importing models registers all mapped classes with Base.metadata for Alembic.
+from f1ri.db import models  # noqa: F401
 from f1ri.db.base import Base
-from f1ri.db import models as _models  # Register all database models
 from f1ri.db.session import DATABASE_URL, engine
-
 
 # Alembic configuration
 config = context.config

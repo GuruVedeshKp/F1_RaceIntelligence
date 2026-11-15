@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 RAW_DIR = ROOT / "data/raw/openf1/2024/bahrain_9472"
@@ -21,6 +20,33 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+# Official 2024 Bahrain Grand Prix starting grid.
+# Source:
+# https://www.formula1.com/en/results.html/2024/races/1229/bahrain/starting-grid.html
+
+OFFICIAL_GRID_BY_DRIVER_NUMBER = {
+    1: 1,    # VER
+    16: 2,   # LEC
+    63: 3,   # RUS
+    55: 4,   # SAI
+    11: 5,   # PER
+    14: 6,   # ALO
+    4: 7,    # NOR
+    81: 8,   # PIA
+    44: 9,   # HAM
+    27: 10,  # HUL
+    22: 11,  # TSU
+    18: 12,  # STR
+    23: 13,  # ALB
+    3: 14,   # RIC
+    20: 15,  # MAG
+    77: 16,  # BOT
+    24: 17,  # ZHO
+    2: 18,   # SAR
+    31: 19,  # OCO
+    10: 20,  # GAS
+}
 
 
 def load_data(name: str) -> pd.DataFrame:
@@ -122,18 +148,44 @@ def main() -> None:
     )
 
     # --------------------------------------------------
-    # 4. STARTING GRID
+    # 4. OFFICIAL STARTING GRID
     # --------------------------------------------------
 
-    # Actual starting-grid positions have not been
-    # independently retrieved and verified yet.
-    # Do not substitute finishing positions.
-
-    results["grid"] = pd.Series(
-        pd.NA,
-        index=results.index,
-        dtype="Int64",
+    actual_driver_numbers = set(
+        results["driver_number"].astype(int)
     )
+
+    official_driver_numbers = set(
+        OFFICIAL_GRID_BY_DRIVER_NUMBER.keys()
+    )
+
+    if actual_driver_numbers != official_driver_numbers:
+        missing = official_driver_numbers - actual_driver_numbers
+        unexpected = actual_driver_numbers - official_driver_numbers
+
+        raise ValueError(
+            f"Driver mapping mismatch. "
+            f"Missing: {missing}, Unexpected: {unexpected}"
+        )
+
+    results["grid"] = (
+        results["driver_number"]
+        .map(OFFICIAL_GRID_BY_DRIVER_NUMBER)
+        .astype("Int64")
+    )
+
+    if results["grid"].isna().any():
+        raise ValueError("Some drivers have no starting-grid position.")
+
+    if results["grid"].duplicated().any():
+        raise ValueError("Duplicate starting-grid positions detected.")
+
+    if set(results["grid"].astype(int)) != set(range(1, 21)):
+        raise ValueError(
+            "Starting grid must contain every position from P1 to P20."
+        )
+
+    logger.info("Official starting grid successfully mapped.")
 
     # --------------------------------------------------
     # 5. BUILD CANONICAL RESULT DATASET
@@ -195,6 +247,15 @@ def main() -> None:
     ).all():
         raise ValueError("Unexpected finishing status found.")
 
+    if clean_results["grid"].isna().any():
+        raise ValueError("Missing starting-grid positions.")
+
+    if clean_results["grid"].duplicated().any():
+        raise ValueError("Duplicate starting-grid positions.")
+
+    if set(clean_results["grid"].astype(int)) != set(range(1, 21)):
+        raise ValueError("Invalid starting-grid positions.")
+
     # --------------------------------------------------
     # 7. SAVE
     # --------------------------------------------------
@@ -237,8 +298,8 @@ def main() -> None:
         clean_results["duration_s"].isna().sum(),
     )
     logger.info(
-        "Starting-grid positions pending: %s",
-        clean_results["grid"].isna().sum(),
+        "Official starting-grid positions assigned: %s",
+        clean_results["grid"].notna().sum(),
     )
 
     logger.info("Saved: %s", OUTPUT_FILE)

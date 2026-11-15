@@ -1,8 +1,7 @@
+import logging
 from pathlib import Path
 
-import logging
 import pandas as pd
-
 
 ROOT = Path(__file__).resolve().parents[1]
 

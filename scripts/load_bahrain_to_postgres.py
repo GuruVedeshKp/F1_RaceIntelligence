@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +21,6 @@ from sqlalchemy import delete, func, insert, or_, select
 
 from f1ri.db.models import Lap, PitStop, Race, RaceResult, TrackEvent, Weather
 from f1ri.db.session import SessionLocal
-
 
 # This loader is intentionally specific to the verified Bahrain 2024 dataset.
 SEASON = 2024
@@ -193,7 +192,7 @@ def to_python_value(value: Any) -> Any:
             raise ValueError(
                 f"Naive datetime encountered ({value!r}); expected a timezone-aware UTC value."
             )
-        return value.astimezone(timezone.utc)
+        return value.astimezone(UTC)
 
     # Convert numpy scalar types (int64, float64, bool_, etc.) to native Python.
     if hasattr(value, "item") and callable(value.item):

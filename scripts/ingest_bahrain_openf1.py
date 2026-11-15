@@ -3,13 +3,12 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pandas as pd
-
 
 # --------------------------------------------------
 # PROJECT CONFIGURATION
@@ -129,7 +128,7 @@ def fetch_endpoint(
             records = response.json()
 
             if not isinstance(records, list):
-                raise ValueError(
+                raise TypeError(
                     f"Unexpected response format from {endpoint}"
                 )
 
@@ -349,7 +348,7 @@ def main() -> None:
         "meeting_key": MEETING_KEY,
         "session_key": SESSION_KEY,
         "retrieved_at_utc": datetime.now(
-            timezone.utc
+            UTC
         ).isoformat(),
         "endpoints": ingestion_results,
     }
